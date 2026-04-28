@@ -158,14 +158,15 @@ if uis.TouchEnabled and not uis.KeyboardEnabled then
 end
 
 -- ─── REMOTE MODULES (lazy load) ─────────────────────────────────────────────
+local BASE = "https://raw.githubusercontent.com/ceooarii-hue/dx/refs/heads/main/Tps/Modules/"
 local URLS = {
-    ReachSize    = "https://raw.githubusercontent.com/itswin7y/REMAP-H/refs/heads/main/Tps/Modules/Reach(SIZE).lua",
-    ReachHRP     = "https://raw.githubusercontent.com/itswin7y/REMAP-H/refs/heads/main/Tps/Modules/Reach(HRP).lua",
-    ReachFTI     = "https://raw.githubusercontent.com/itswin7y/REMAP-H/refs/heads/main/Tps/Modules/Reach(FTI).lua",
-    AirHelper    = "https://raw.githubusercontent.com/itswin7y/REMAP-H/refs/heads/main/Tps/Modules/AirHelper.lua",
-    BallSize     = "https://raw.githubusercontent.com/itswin7y/REMAP-H/refs/heads/main/Tps/Modules/Ball%20size.lua",
-    BallSkin     = "https://raw.githubusercontent.com/itswin7y/REMAP-H/refs/heads/main/Tps/Modules/Ball%20skin%20changer.lua",
-    AvatarStolen = "https://raw.githubusercontent.com/itswin7y/REMAP-H/refs/heads/main/Tps/Modules/Avatarstolen.lua",
+    ReachSize    = BASE .. "Reach(SIZE).lua",
+    ReachHRP     = BASE .. "Reach(HRP).lua",
+    ReachFTI     = BASE .. "Reach(FTI).lua",
+    AirHelper    = BASE .. "AirHelper.lua",
+    BallSize     = BASE .. "Ball%20size.lua",
+    BallSkin     = BASE .. "Ball%20skin%20changer.lua",
+    AvatarStolen = BASE .. "Avatarstolen.lua",
 }
 local loaded = {}
 local function load_once(key)
