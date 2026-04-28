@@ -56,20 +56,17 @@ local function getBall()
 end
 
 getgenv().React = {}
-getgenv().React.enabled = false
-getgenv().React.power   = Vector3.new(4000000, 350, 4000000)
-getgenv().React.distance = 8
-getgenv().React.cooldown = 0.3
+getgenv().React.enabled  = false
+getgenv().React.power    = Vector3.new(4000000, 350, 4000000)
+getgenv().React.distance = 20
 
+local _mouse = lp:GetMouse()
 local _react_conn = nil
-local _react_last = 0
 
 getgenv().React.enable = function()
     getgenv().React.enabled = true
-    _react_conn = game:GetService("RunService").Heartbeat:Connect(function()
+    _react_conn = _mouse.Button1Down:Connect(function()
         if not getgenv().React or not getgenv().React.enabled then return end
-        local now = tick()
-        if now - _react_last < getgenv().React.cooldown then return end
         local char = lp.Character
         if not char then return end
         local hrp = char:FindFirstChild("HumanoidRootPart")
@@ -77,7 +74,6 @@ getgenv().React.enable = function()
         local ball = getBall()
         if not ball then return end
         if (hrp.Position - ball.Position).Magnitude <= getgenv().React.distance then
-            _react_last = now
             workspace.FE.System.Kick:FireServer(
                 lp.UserId, ball, 30,
                 getgenv().React.power,
@@ -318,17 +314,10 @@ local Window = Seraph:Window("REMAP-H") do
                         end,
                     })
                     Sec:Textbox({
-                        Title = "Distance (studs)", Placeholder = "8", Default = "8",
+                        Title = "Distance (studs)", Placeholder = "20", Default = "20",
                         Flag = "React_Distance",
                         Callback = function(val)
-                            if getgenv().React then getgenv().React.distance = tonumber(val) or 8 end
-                        end,
-                    })
-                    Sec:Textbox({
-                        Title = "Cooldown (sec)", Placeholder = "0.3", Default = "0.3",
-                        Flag = "React_Cooldown",
-                        Callback = function(val)
-                            if getgenv().React then getgenv().React.cooldown = tonumber(val) or 0.3 end
+                            if getgenv().React then getgenv().React.distance = tonumber(val) or 20 end
                         end,
                     })
                     Sec:Toggle({
@@ -338,8 +327,7 @@ local Window = Seraph:Window("REMAP-H") do
                             if state then
                                 local n = tonumber(Seraph.Flags.React_Power:GetValue()) or 4000000
                                 getgenv().React.power    = Vector3.new(n, 350, n)
-                                getgenv().React.distance = tonumber(Seraph.Flags.React_Distance:GetValue()) or 8
-                                getgenv().React.cooldown = tonumber(Seraph.Flags.React_Cooldown:GetValue()) or 0.3
+                                getgenv().React.distance = tonumber(Seraph.Flags.React_Distance:GetValue()) or 20
                                 getgenv().React.enable()
                             else
                                 getgenv().React.destroy()
