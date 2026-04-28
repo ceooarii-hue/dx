@@ -56,38 +56,46 @@ local function getBall()
 end
 
 getgenv().React = {}
-getgenv().React.enabled  = false
-getgenv().React.power    = Vector3.new(4000000, 350, 4000000)
-getgenv().React.distance = 20
+getgenv().React.enabled = false
 
-local _mouse = lp:GetMouse()
-local _react_conn = nil
+local _react_mt = getrawmetatable(game)
+local _react_orig = nil
 
 getgenv().React.enable = function()
     getgenv().React.enabled = true
-    _react_conn = _mouse.Button1Down:Connect(function()
-        if not getgenv().React or not getgenv().React.enabled then return end
-        local char = lp.Character
-        if not char then return end
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        if not hrp then return end
-        local ball = getBall()
-        if not ball then return end
-        if (hrp.Position - ball.Position).Magnitude > getgenv().React.distance then return end
-        -- exact sequence: RemoteEvent → Kick
-        workspace.FE.Kick.RemoteEvent:FireServer()
-        workspace.FE.System.Kick:FireServer(
-            lp.UserId, ball, 30,
-            getgenv().React.power,
-            false, false, 0,
-            "Rock'n'roll Star", "NeverFearTruth", "power=95/100"
-        )
+    setreadonly(_react_mt, false)
+    _react_orig = _react_mt.__namecall
+    _react_mt.__namecall = newcclosure(function(self, ...)
+        local m = getnamecallmethod()
+        if m == "FireServer" and tostring(self):find("RemoteEvent") and getgenv().React and getgenv().React.enabled then
+            local ball = getBall()
+            if ball then
+                local char = lp.Character
+                local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                if hrp and (hrp.Position - ball.Position).Magnitude <= 20 then
+                    workspace.FE.System.Kick:FireServer(
+                        lp.UserId, ball, 30,
+                        Vector3.new(4000000, 350, 4000000),
+                        false, false, 0,
+                        "Rock'n'roll Star", "NeverFearTruth", "power=95/100"
+                    )
+                end
+            end
+        end
+        return _react_orig(self, ...)
     end)
+    setreadonly(_react_mt, true)
 end
 
 getgenv().React.destroy = function()
     getgenv().React.enabled = false
-    if _react_conn then _react_conn:Disconnect(); _react_conn = nil end
+    if _react_orig then
+        setreadonly(_react_mt, false)
+        _react_mt.__namecall = _react_orig
+        setreadonly(_react_mt, true)
+        _react_orig = nil
+    end
+    getgenv().React = nil
 end
 
 -- ─── SERAPH UI ──────────────────────────────────────────────────────────────
@@ -304,35 +312,14 @@ local Window = Seraph:Window("REMAP-H") do
     -- TAB: REACT ─────────────────────────────────────────────────────────────
     local ReactTab = Window:AddTab({"rbxassetid://16095745392"}) do
         local ReactCat = ReactTab:AddCategory("React") do
-            local Sub = ReactCat:AddSubCategory("Auto React") do
+            local Sub = ReactCat:AddSubCategory("Instant React") do
                 local Sec = Sub:AddSection("Main") do
-                    Sec:Textbox({
-                        Title = "Power (X/Z)", Placeholder = "4000000", Default = "4000000",
-                        Flag = "React_Power",
-                        Callback = function(val)
-                            local n = tonumber(val) or 4000000
-                            if getgenv().React then getgenv().React.power = Vector3.new(n, 350, n) end
-                        end,
-                    })
-                    Sec:Textbox({
-                        Title = "Distance (studs)", Placeholder = "20", Default = "20",
-                        Flag = "React_Distance",
-                        Callback = function(val)
-                            if getgenv().React then getgenv().React.distance = tonumber(val) or 20 end
-                        end,
-                    })
                     Sec:Toggle({
-                        Title = "Enable React", Flag = "React_On",
+                        Title = "Enable", Flag = "React_On",
                         Callback = function(state)
                             if not getgenv().React then return end
-                            if state then
-                                local n = tonumber(Seraph.Flags.React_Power:GetValue()) or 4000000
-                                getgenv().React.power    = Vector3.new(n, 350, n)
-                                getgenv().React.distance = tonumber(Seraph.Flags.React_Distance:GetValue()) or 20
-                                getgenv().React.enable()
-                            else
-                                getgenv().React.destroy()
-                            end
+                            if state then getgenv().React.enable()
+                            else getgenv().React.destroy() end
                         end,
                     })
                 end
