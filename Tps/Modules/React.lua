@@ -7,38 +7,46 @@ local function getBall()
 end
 
 getgenv().React = {}
-getgenv().React.enabled  = false
-getgenv().React.power    = Vector3.new(4000000, 350, 4000000)
-getgenv().React.distance = 20
+getgenv().React.enabled = false
 
-local mouse = lp:GetMouse()
-local _conn = nil
+local _mt = getrawmetatable(game)
+local _orig = nil
 
 getgenv().React.enable = function()
     getgenv().React.enabled = true
-    _conn = mouse.Button1Down:Connect(function()
-        if not getgenv().React or not getgenv().React.enabled then return end
-        local char = lp.Character
-        if not char then return end
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        if not hrp then return end
-        local ball = getBall()
-        if not ball then return end
-        if (hrp.Position - ball.Position).Magnitude > getgenv().React.distance then return end
-
+    setreadonly(_mt, false)
+    _orig = _mt.__namecall
+    _mt.__namecall = newcclosure(function(self, ...)
+        local m = getnamecallmethod()
         
-        workspace.FE.Kick.RemoteEvent:FireServer()
-        workspace.FE.System.Kick:FireServer(
-            lp.UserId, ball, 30,
-            getgenv().React.power,
-            false, false, 0,
-            "Rock'n'roll Star", "NeverFearTruth", "power=95/100"
-        )
+        if m == "FireServer" and tostring(self):find("RemoteEvent") and getgenv().React and getgenv().React.enabled then
+            local ball = getBall()
+            if ball then
+                local char = lp.Character
+                local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                if hrp and (hrp.Position - ball.Position).Magnitude <= 20 then
+                    
+                    workspace.FE.System.Kick:FireServer(
+                        lp.UserId, ball, 30,
+                        Vector3.new(4000000, 350, 4000000),
+                        false, false, 0,
+                        "Rock'n'roll Star", "NeverFearTruth", "power=95/100"
+                    )
+                end
+            end
+        end
+        return _orig(self, ...)
     end)
+    setreadonly(_mt, true)
 end
 
 getgenv().React.destroy = function()
     getgenv().React.enabled = false
-    if _conn then _conn:Disconnect(); _conn = nil end
+    if _orig then
+        setreadonly(_mt, false)
+        _mt.__namecall = _orig
+        setreadonly(_mt, true)
+        _orig = nil
+    end
     getgenv().React = nil
 end
