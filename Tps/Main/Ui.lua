@@ -73,14 +73,15 @@ getgenv().React.enable = function()
         if not hrp then return end
         local ball = getBall()
         if not ball then return end
-        if (hrp.Position - ball.Position).Magnitude <= getgenv().React.distance then
-            workspace.FE.System.Kick:FireServer(
-                lp.UserId, ball, 30,
-                getgenv().React.power,
-                false, false, 0,
-                "Rock'n'roll Star", "NeverFearTruth", "power=95/100"
-            )
-        end
+        if (hrp.Position - ball.Position).Magnitude > getgenv().React.distance then return end
+        -- exact sequence: RemoteEvent → Kick
+        workspace.FE.Kick.RemoteEvent:FireServer()
+        workspace.FE.System.Kick:FireServer(
+            lp.UserId, ball, 30,
+            getgenv().React.power,
+            false, false, 0,
+            "Rock'n'roll Star", "NeverFearTruth", "power=95/100"
+        )
     end)
 end
 
